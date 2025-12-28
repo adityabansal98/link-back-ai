@@ -106,7 +106,15 @@ export default function Home() {
   })
 
   const handleFindConnections = async () => {
-    if (!resolution.trim() || !file) return
+    // Need resolution and either a file OR saved connections loaded
+    if (!resolution.trim() || (!file && !connections)) {
+      if (!resolution.trim()) {
+        setError("Please enter your resolution")
+      } else if (!file && !connections) {
+        setError("Please upload a CSV file or load your saved connections")
+      }
+      return
+    }
 
     setLoading(true)
     setError(null)
@@ -114,13 +122,18 @@ export default function Home() {
     try {
       // Step 1: Parse CSV (only if we don't have connections yet or file changed)
       let parsedConnections = connections
-      if (!parsedConnections) {
+      if (!parsedConnections && file) {
         parsedConnections = await parseCSV(file)
         setConnections(parsedConnections)
         // Auto-save connections if user is signed in
         if (isSignedIn && !usingSavedConnections) {
           await saveConnections(parsedConnections)
         }
+      }
+
+      // If we still don't have connections at this point, something went wrong
+      if (!parsedConnections) {
+        throw new Error("No connections available. Please upload a CSV or load saved connections.")
       }
 
       // Step 2: Call API to analyze resolution and get keywords
@@ -322,7 +335,7 @@ export default function Home() {
             {/* Action Button */}
             <button
               onClick={handleFindConnections}
-              disabled={!resolution.trim() || (!file && !usingSavedConnections) || loading}
+              disabled={!resolution.trim() || (!file && !connections) || loading}
               className="w-full py-4 px-6 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold rounded-xl hover:from-purple-700 hover:to-pink-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all transform hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2"
             >
               {loading ? (
