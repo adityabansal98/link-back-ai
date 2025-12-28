@@ -83,26 +83,40 @@ export function MessageModal({ connection, resolution, isOpen, onClose }: Messag
   const company = connection.Company || ""
 
   // Extract user ID from LinkedIn URL for messaging compose
-  const getLinkedInMessagingUrl = (profileUrl: string): string => {
+  const getLinkedInMessagingUrl = (profileUrl: string, messageText?: string): string => {
     try {
       // LinkedIn profile URLs are typically: https://www.linkedin.com/in/username/
       // For messaging, we can use the username or try to extract numeric ID
       // LinkedIn messaging compose accepts the profile URL or username as recipient
       const urlMatch = profileUrl.match(/linkedin\.com\/in\/([^\/\?]+)/)
+      let baseUrl: string
+      
       if (urlMatch && urlMatch[1]) {
         const username = urlMatch[1]
         // Use the username as recipient (LinkedIn accepts this format)
-        return `https://www.linkedin.com/messaging/compose?recipient=${encodeURIComponent(username)}`
+        baseUrl = `https://www.linkedin.com/messaging/compose?recipient=${encodeURIComponent(username)}`
+      } else {
+        // Fallback: use the full profile URL as recipient
+        baseUrl = `https://www.linkedin.com/messaging/compose?recipient=${encodeURIComponent(profileUrl)}`
       }
-      // Fallback: use the full profile URL as recipient
-      return `https://www.linkedin.com/messaging/compose?recipient=${encodeURIComponent(profileUrl)}`
+      
+      // Add message body if provided
+      if (messageText) {
+        baseUrl += `&body=${encodeURIComponent(messageText)}`
+      }
+      
+      return baseUrl
     } catch {
       // If URL parsing fails, return the messaging compose URL with the profile URL as recipient
-      return `https://www.linkedin.com/messaging/compose?recipient=${encodeURIComponent(profileUrl)}`
+      let fallbackUrl = `https://www.linkedin.com/messaging/compose?recipient=${encodeURIComponent(profileUrl)}`
+      if (messageText) {
+        fallbackUrl += `&body=${encodeURIComponent(messageText)}`
+      }
+      return fallbackUrl
     }
   }
 
-  const messagingUrl = connection.URL ? getLinkedInMessagingUrl(connection.URL) : null
+  const messagingUrl = connection.URL ? getLinkedInMessagingUrl(connection.URL, message || undefined) : null
 
   const copyToClipboard = async () => {
     if (!message) return
