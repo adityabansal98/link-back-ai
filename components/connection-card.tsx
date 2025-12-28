@@ -1,4 +1,4 @@
-import { Linkedin, Mail } from "lucide-react"
+import { Linkedin, Calendar } from "lucide-react"
 import type { MatchedConnection } from "@/lib/match-connections"
 
 interface ConnectionCardProps {
@@ -10,6 +10,30 @@ export function ConnectionCard({ connection, onConnect }: ConnectionCardProps) {
   const fullName = `${connection["First Name"]} ${connection["Last Name"]}`
   const position = connection.Position || "No position listed"
   const company = connection.Company || "No company listed"
+  const connectedOn = connection["Connected On"] || ""
+
+  // Format the date nicely
+  const formatDate = (dateString: string): string => {
+    if (!dateString) return ""
+    try {
+      // LinkedIn dates are typically in format "DD Mon YYYY" or similar
+      // Try to parse and format it nicely
+      const date = new Date(dateString)
+      if (!isNaN(date.getTime())) {
+        return date.toLocaleDateString("en-US", { 
+          year: "numeric", 
+          month: "short", 
+          day: "numeric" 
+        })
+      }
+      // If parsing fails, return the original string
+      return dateString
+    } catch {
+      return dateString
+    }
+  }
+
+  const formattedDate = formatDate(connectedOn)
 
   return (
     <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-6 hover:border-purple-500/50 transition-all hover:shadow-lg hover:shadow-purple-500/10">
@@ -17,7 +41,13 @@ export function ConnectionCard({ connection, onConnect }: ConnectionCardProps) {
         <div className="flex-1">
           <h3 className="text-lg font-semibold text-slate-100 mb-1">{fullName}</h3>
           <p className="text-sm text-purple-400 font-medium mb-1">{position}</p>
-          <p className="text-sm text-slate-400">{company}</p>
+          <p className="text-sm text-slate-400 mb-2">{company}</p>
+          {formattedDate && (
+            <div className="flex items-center gap-1.5 text-xs text-slate-500">
+              <Calendar className="w-3.5 h-3.5" />
+              <span>Connected {formattedDate}</span>
+            </div>
+          )}
         </div>
         {connection.URL && (
           <a
