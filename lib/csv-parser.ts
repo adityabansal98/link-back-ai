@@ -75,7 +75,7 @@ export async function parseCSV(file: File): Promise<LinkedInConnection[]> {
 
           resolve(validConnections)
         },
-        error: (error) => {
+        error: (error: Error) => {
           reject(new Error(`Failed to parse CSV: ${error.message}`))
         },
       })
