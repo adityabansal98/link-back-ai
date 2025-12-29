@@ -22,16 +22,26 @@ export default function Home() {
   const [selectedConnection, setSelectedConnection] = useState<MatchedConnection | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [savedConnections, setSavedConnections] = useState<LinkedInConnection[] | null>(null)
+  const [savedConnectionsUpdatedAt, setSavedConnectionsUpdatedAt] = useState<string | null>(null)
   const [usingSavedConnections, setUsingSavedConnections] = useState(false)
   const [loadingSaved, setLoadingSaved] = useState(false)
 
-  // Load saved connections when user signs in
+  // Auto-load saved connections when user signs in
   useEffect(() => {
     if (isSignedIn && !savedConnections && !loadingSaved) {
       loadSavedConnections()
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isSignedIn])
+
+  // Auto-use saved connections if available and no file is uploaded
+  useEffect(() => {
+    if (savedConnections && savedConnections.length > 0 && !file && !connections) {
+      setConnections(savedConnections)
+      setUsingSavedConnections(true)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [savedConnections, file])
 
   // Track page view
   useEffect(() => {
@@ -56,6 +66,10 @@ export default function Home() {
         const data = await response.json()
         if (data.connections) {
           setSavedConnections(data.connections)
+          setSavedConnectionsUpdatedAt(data.updatedAt || null)
+        } else {
+          setSavedConnections(null)
+          setSavedConnectionsUpdatedAt(null)
         }
       }
     } catch (err) {
@@ -65,14 +79,6 @@ export default function Home() {
     }
   }
 
-  const handleLoadSavedConnections = () => {
-    if (savedConnections) {
-      setConnections(savedConnections)
-      setUsingSavedConnections(true)
-      setFile(null) // Clear file since we're using saved
-      trackButtonClick("load_saved_connections", "saved_connections_banner")
-    }
-  }
 
   const saveConnections = async (connectionsToSave: LinkedInConnection[]) => {
     if (!isSignedIn) return
@@ -87,6 +93,9 @@ export default function Home() {
       })
       // Update saved connections state
       setSavedConnections(connectionsToSave)
+      setSavedConnectionsUpdatedAt(new Date().toISOString())
+      // Reload to get updated timestamp
+      await loadSavedConnections()
     } catch (err) {
       console.error("Failed to save connections:", err)
     }
@@ -115,13 +124,14 @@ export default function Home() {
   })
 
   const handleFindConnections = async () => {
-    // Need resolution and either a file OR saved connections loaded
-    if (!resolution.trim() || (!file && !connections)) {
-      if (!resolution.trim()) {
-        setError("Please enter your goal")
-      } else if (!file && !connections) {
-        setError("Please upload a CSV file or load your saved connections")
-      }
+    // Need resolution and either a file OR connections (from saved or uploaded)
+    if (!resolution.trim()) {
+      setError("Please enter your goal")
+      return
+    }
+    
+    if (!file && !connections) {
+      setError("Please upload a CSV file or ensure your saved connections are loaded")
       return
     }
 
@@ -194,6 +204,23 @@ export default function Home() {
 
   const showResults = matchedConnections.length > 0
   const hasConnections = connections !== null
+
+  // Format date for display
+  const formatDate = (dateString: string | null): string => {
+    if (!dateString) return "Never"
+    try {
+      const date = new Date(dateString)
+      return date.toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      })
+    } catch {
+      return dateString
+    }
+  }
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-slate-950 via-purple-950 to-slate-950">
@@ -281,32 +308,37 @@ export default function Home() {
               />
             </div>
 
-            {/* Saved Connections Option */}
-            {isSignedIn && savedConnections && savedConnections.length > 0 && !usingSavedConnections && !file && (
+            {/* Saved Connections Info - Show when user has saved connections */}
+            {isSignedIn && savedConnections && savedConnections.length > 0 && usingSavedConnections && !file && (
               <div className="mb-6 p-4 bg-purple-950/20 border border-purple-800/50 rounded-xl">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <Database className="w-5 h-5 text-purple-400" />
-                    <div>
-                      <p className="text-slate-200 font-medium">Saved Connections Available</p>
-                      <p className="text-xs text-slate-400">
-                        {savedConnections.length} connections from your last upload
+                <div className="flex items-center gap-3">
+                  <Database className="w-5 h-5 text-purple-400 flex-shrink-0" />
+                  <div className="flex-1">
+                    <p className="text-slate-200 font-medium mb-1">
+                      Using {savedConnections.length} saved connections
+                    </p>
+                    {savedConnectionsUpdatedAt && (
+                      <p className="text-xs text-slate-400 mb-2">
+                        Last updated: {formatDate(savedConnectionsUpdatedAt)}
                       </p>
-                    </div>
+                    )}
+                    <p className="text-sm text-slate-300">
+                      Want to update?{" "}
+                      <Link
+                        href="/profile"
+                        onClick={() => trackButtonClick("update_connections_link", "main_page")}
+                        className="text-purple-400 hover:text-purple-300 underline font-medium"
+                      >
+                        Go to Profile →
+                      </Link>
+                    </p>
                   </div>
-                  <button
-                    onClick={handleLoadSavedConnections}
-                    className="flex items-center gap-2 px-4 py-2 bg-purple-600/50 hover:bg-purple-600 text-white rounded-lg transition-colors"
-                  >
-                    <RefreshCw className="w-4 h-4" />
-                    <span>Load Saved</span>
-                  </button>
                 </div>
               </div>
             )}
 
-            {/* Help Link - Only show when no data uploaded */}
-            {!hasConnections && (
+            {/* Help Link - Only show when no saved connections and no file uploaded */}
+            {!hasConnections && !savedConnections && (
               <div className="mb-4">
                 <Link
                   href="/how-to-download"
@@ -319,54 +351,56 @@ export default function Home() {
               </div>
             )}
 
-            {/* File Upload Zone */}
-            <div className="mb-6">
-              <label className="flex items-center gap-2 text-slate-300 mb-3 text-lg font-medium">
-                <Upload className="w-5 h-5 text-purple-400" />
-                LinkedIn Connections
-                {hasConnections && (
-                  <span className="ml-2 text-xs text-green-400 font-normal">
-                    (Loaded: {connections?.length} connections
-                    {usingSavedConnections && " - from saved"}
-                    {!usingSavedConnections && file && " - from new upload"}
-                    )
-                  </span>
-                )}
-              </label>
-              <div
-                {...getRootProps()}
-                className={`border-2 border-dashed rounded-xl p-12 text-center cursor-pointer transition-all ${isDragActive
-                  ? "border-purple-500 bg-purple-950/20"
-                  : "border-slate-700 hover:border-slate-600 bg-slate-900/30"
-                  }`}
-              >
-                <input {...getInputProps()} />
-                {file ? (
-                  <div className="space-y-2">
-                    <Upload className="w-12 h-12 mx-auto text-purple-400" />
-                    <p className="text-slate-200 font-medium">{file.name}</p>
-                    <p className="text-sm text-slate-400">Click or drag to replace</p>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    <Upload className="w-12 h-12 mx-auto text-slate-500" />
-                    <div>
-                      <p className="text-slate-300 font-medium mb-1">
-                        {isDragActive
-                          ? "Drop your CSV file here"
-                          : "Drag & drop your Connections.csv file"}
-                      </p>
-                      <p className="text-sm text-slate-500">
-                        or click to browse
+            {/* File Upload Zone - Only show if no saved connections or if user wants to upload new file */}
+            {(!isSignedIn || !savedConnections || savedConnections.length === 0 || file) && (
+              <div className="mb-6">
+                <label className="flex items-center gap-2 text-slate-300 mb-3 text-lg font-medium">
+                  <Upload className="w-5 h-5 text-purple-400" />
+                  LinkedIn Connections
+                  {hasConnections && (
+                    <span className="ml-2 text-xs text-green-400 font-normal">
+                      (Loaded: {connections?.length} connections
+                      {usingSavedConnections && " - from saved"}
+                      {!usingSavedConnections && file && " - from new upload"}
+                      )
+                    </span>
+                  )}
+                </label>
+                <div
+                  {...getRootProps()}
+                  className={`border-2 border-dashed rounded-xl p-12 text-center cursor-pointer transition-all ${isDragActive
+                    ? "border-purple-500 bg-purple-950/20"
+                    : "border-slate-700 hover:border-slate-600 bg-slate-900/30"
+                    }`}
+                >
+                  <input {...getInputProps()} />
+                  {file ? (
+                    <div className="space-y-2">
+                      <Upload className="w-12 h-12 mx-auto text-purple-400" />
+                      <p className="text-slate-200 font-medium">{file.name}</p>
+                      <p className="text-sm text-slate-400">Click or drag to replace</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      <Upload className="w-12 h-12 mx-auto text-slate-500" />
+                      <div>
+                        <p className="text-slate-300 font-medium mb-1">
+                          {isDragActive
+                            ? "Drop your CSV file here"
+                            : "Drag & drop your Connections.csv file"}
+                        </p>
+                        <p className="text-sm text-slate-500">
+                          or click to browse
+                        </p>
+                      </div>
+                      <p className="text-xs text-slate-600 mt-4">
+                        Expected format: First Name, Last Name, Company, Position, Connected On
                       </p>
                     </div>
-                    <p className="text-xs text-slate-600 mt-4">
-                      Expected format: First Name, Last Name, Company, Position, Connected On
-                    </p>
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Action Button */}
             <button
