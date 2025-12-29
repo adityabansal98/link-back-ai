@@ -9,6 +9,7 @@ import { parseCSV, type LinkedInConnection } from "@/lib/csv-parser"
 import { matchConnections, type MatchedConnection } from "@/lib/match-connections"
 import { ConnectionCard } from "@/components/connection-card"
 import { MessageModal } from "@/components/message-modal"
+import { trackFileUpload, trackButtonClick, trackSearch, trackPageView } from "@/lib/analytics"
 
 export default function Home() {
   const { isSignedIn, user } = useUser()
@@ -31,6 +32,11 @@ export default function Home() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isSignedIn])
+
+  // Track page view
+  useEffect(() => {
+    trackPageView("/")
+  }, [])
 
   // Compute matched connections when we have both connections and keywords
   const matchedConnections = useMemo(() => {
@@ -64,6 +70,7 @@ export default function Home() {
       setConnections(savedConnections)
       setUsingSavedConnections(true)
       setFile(null) // Clear file since we're using saved
+      trackButtonClick("load_saved_connections", "saved_connections_banner")
     }
   }
 
@@ -95,6 +102,7 @@ export default function Home() {
       }
       setFile(newFile)
       setUsingSavedConnections(false) // Switch to new file mode
+      trackFileUpload(newFile.name)
     }
   }
 
@@ -153,6 +161,8 @@ export default function Home() {
 
       const data = await response.json()
       setKeywords(data.keywords)
+      // Track search event
+      trackSearch(data.keywords?.length || 0)
     } catch (err) {
       setError(err instanceof Error ? err.message : "An error occurred")
       // Don't clear connections on error, just keywords
@@ -165,6 +175,7 @@ export default function Home() {
   const handleConnect = (connection: MatchedConnection) => {
     setSelectedConnection(connection)
     setIsModalOpen(true)
+    trackButtonClick("connect", "connection_card")
   }
 
   const handleCloseModal = () => {
@@ -178,6 +189,7 @@ export default function Home() {
     setConnections(null)
     setKeywords(null)
     setError(null)
+    trackButtonClick("start_over", "results_header")
   }
 
   const showResults = matchedConnections.length > 0
@@ -290,6 +302,7 @@ export default function Home() {
               <div className="mb-4">
                 <Link
                   href="/how-to-download"
+                  onClick={() => trackButtonClick("help_download_link", "main_page")}
                   className="inline-flex items-center gap-2 text-sm text-purple-400 hover:text-purple-300 underline transition-colors"
                 >
                   <FileText className="w-4 h-4" />
@@ -349,7 +362,10 @@ export default function Home() {
 
             {/* Action Button */}
             <button
-              onClick={handleFindConnections}
+              onClick={() => {
+                trackButtonClick("find_connections", "main_action_button")
+                handleFindConnections()
+              }}
               disabled={!resolution.trim() || (!file && !connections) || loading}
               className="w-full py-4 px-6 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold rounded-xl hover:from-purple-700 hover:to-pink-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all transform hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2"
             >

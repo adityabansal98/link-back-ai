@@ -1,6 +1,7 @@
 import { X, Copy, Loader2, Check } from "lucide-react"
 import { useState, useEffect } from "react"
 import type { MatchedConnection } from "@/lib/match-connections"
+import { trackMessageGenerated, trackLinkedInClick, trackButtonClick } from "@/lib/analytics"
 
 interface MessageModalProps {
   connection: MatchedConnection | null
@@ -52,6 +53,8 @@ export function MessageModal({ connection, resolution, isOpen, onClose }: Messag
 
       const data = await response.json()
       setMessage(data.message)
+      // Track message generation
+      trackMessageGenerated(fullName)
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to generate message")
     } finally {
@@ -124,6 +127,7 @@ export function MessageModal({ connection, resolution, isOpen, onClose }: Messag
     try {
       await navigator.clipboard.writeText(message)
       setCopied(true)
+      trackButtonClick("copy_message", "message_modal")
       setTimeout(() => setCopied(false), 2000)
     } catch (err) {
       console.error("Failed to copy:", err)
@@ -165,7 +169,10 @@ export function MessageModal({ connection, resolution, isOpen, onClose }: Messag
                 Generate a personalized LinkedIn message for {fullName}
               </p>
               <button
-                onClick={generateMessage}
+                onClick={() => {
+                  trackButtonClick("generate_message", "message_modal")
+                  generateMessage()
+                }}
                 className="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-medium rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all transform hover:scale-105 active:scale-95"
               >
                 Generate Message
@@ -225,6 +232,7 @@ export function MessageModal({ connection, resolution, isOpen, onClose }: Messag
                     href={messagingUrl}
                     target="_blank"
                     rel="noopener noreferrer"
+                    onClick={() => trackLinkedInClick("message")}
                     className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all"
                   >
                     Message on LinkedIn
@@ -233,7 +241,10 @@ export function MessageModal({ connection, resolution, isOpen, onClose }: Messag
               </div>
 
               <button
-                onClick={generateMessage}
+                onClick={() => {
+                  trackButtonClick("regenerate_message", "message_modal")
+                  generateMessage()
+                }}
                 className="w-full px-4 py-2 text-slate-400 hover:text-slate-200 text-sm border border-slate-700 rounded-lg hover:border-slate-600 transition-colors"
               >
                 Regenerate Message

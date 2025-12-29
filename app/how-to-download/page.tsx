@@ -2,8 +2,13 @@
 
 import { ArrowLeft, ExternalLink, FileText, CheckCircle } from "lucide-react"
 import Link from "next/link"
+import { trackPageView, trackLinkedInClick } from "@/lib/analytics"
+import { useEffect } from "react"
 
 export default function HowToDownloadPage() {
+  useEffect(() => {
+    trackPageView("/how-to-download")
+  }, [])
   return (
     <main className="min-h-screen bg-gradient-to-br from-slate-950 via-purple-950 to-slate-950">
       <div className="container mx-auto px-4 py-16">
@@ -50,6 +55,7 @@ export default function HowToDownloadPage() {
                   href="https://www.linkedin.com/mypreferences/d/download-my-data"
                   target="_blank"
                   rel="noopener noreferrer"
+                  onClick={() => trackLinkedInClick("profile")}
                   className="inline-flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors font-medium"
                 >
                   <ExternalLink className="w-4 h-4" />
@@ -172,6 +178,7 @@ export default function HowToDownloadPage() {
               href="https://www.linkedin.com/mypreferences/d/download-my-data"
               target="_blank"
               rel="noopener noreferrer"
+              onClick={() => trackLinkedInClick("profile")}
               className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all font-medium"
             >
               <ExternalLink className="w-5 h-5" />

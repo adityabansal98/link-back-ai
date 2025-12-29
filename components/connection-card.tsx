@@ -1,5 +1,6 @@
 import { Linkedin, Calendar } from "lucide-react"
 import type { MatchedConnection } from "@/lib/match-connections"
+import { trackLinkedInClick, trackButtonClick } from "@/lib/analytics"
 
 interface ConnectionCardProps {
   connection: MatchedConnection
@@ -54,6 +55,7 @@ export function ConnectionCard({ connection, onConnect }: ConnectionCardProps) {
             href={connection.URL}
             target="_blank"
             rel="noopener noreferrer"
+            onClick={() => trackLinkedInClick("profile")}
             className="text-slate-400 hover:text-purple-400 transition-colors"
             aria-label="View LinkedIn profile"
           >
