@@ -1,10 +1,11 @@
 "use client"
 
 import { useState, useMemo, useEffect } from "react"
-import { Upload, Target, Sparkles, Loader2, Users, LogOut, User, Database, RefreshCw, FileText, Settings } from "lucide-react"
+import { Upload, Target, Sparkles, Loader2, Users, Database, RefreshCw, FileText } from "lucide-react"
 import { useDropzone } from "react-dropzone"
-import { useUser, SignInButton, SignOutButton } from "@clerk/nextjs"
+import { useUser } from "@clerk/nextjs"
 import Link from "next/link"
+import { Header } from "@/components/header"
 import { parseCSV, type LinkedInConnection } from "@/lib/csv-parser"
 import { matchConnections, type MatchedConnection } from "@/lib/match-connections"
 import { ConnectionCard } from "@/components/connection-card"
@@ -14,7 +15,7 @@ import { useTypingAnimation } from "@/hooks/useTypingAnimation"
 import { formatDate } from "@/lib/date-utils"
 
 export default function Home() {
-  const { isSignedIn, user } = useUser()
+  const { isSignedIn } = useUser()
   const [resolution, setResolution] = useState("")
   const [file, setFile] = useState<File | null>(null)
   const [loading, setLoading] = useState(false)
@@ -225,47 +226,7 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-slate-950 via-purple-950 to-slate-950">
-      {/* Auth Header */}
-      <div className="container mx-auto px-4 pt-6">
-        <div className="flex justify-end">
-          {isSignedIn ? (
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2 text-slate-300">
-                {user?.imageUrl && (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={user.imageUrl}
-                    alt={user.fullName || "User"}
-                    className="w-8 h-8 rounded-full"
-                  />
-                )}
-                <span className="text-sm">{user?.fullName || user?.emailAddresses[0]?.emailAddress}</span>
-              </div>
-              <Link
-                href="/profile"
-                onClick={() => trackButtonClick("profile_link", "header")}
-                className="flex items-center gap-2 px-4 py-2 text-slate-300 hover:text-slate-100 border border-slate-700 rounded-lg hover:border-slate-600 transition-colors"
-              >
-                <Settings className="w-4 h-4" />
-                <span>Profile</span>
-              </Link>
-              <SignOutButton>
-                <button className="flex items-center gap-2 px-4 py-2 text-slate-300 hover:text-slate-100 border border-slate-700 rounded-lg hover:border-slate-600 transition-colors">
-                  <LogOut className="w-4 h-4" />
-                  <span>Sign Out</span>
-                </button>
-              </SignOutButton>
-            </div>
-          ) : (
-            <SignInButton mode="modal">
-              <button className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all">
-                <User className="w-4 h-4" />
-                <span>Sign In</span>
-              </button>
-            </SignInButton>
-          )}
-        </div>
-      </div>
+      <Header />
 
       <div className="container mx-auto px-4 py-16">
         <div className={`${showResults ? "max-w-7xl" : "max-w-4xl"} mx-auto`}>
