@@ -321,8 +321,21 @@ export default function Home() {
               />
             </div>
 
+            {/* Loading State - Show while fetching saved connections */}
+            {isSignedIn && loadingSaved && (
+              <div className="mb-6 p-4 bg-slate-900/50 border border-slate-800 rounded-xl">
+                <div className="flex items-center gap-3">
+                  <Loader2 className="w-5 h-5 text-purple-400 animate-spin flex-shrink-0" />
+                  <div className="flex-1">
+                    <p className="text-slate-200 font-medium">Loading your saved connections...</p>
+                    <p className="text-xs text-slate-400 mt-1">Checking for previously uploaded data</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Saved Connections Info - Show when user has saved connections */}
-            {isSignedIn && savedConnections && savedConnections.length > 0 && usingSavedConnections && !file && (
+            {isSignedIn && !loadingSaved && savedConnections && savedConnections.length > 0 && usingSavedConnections && !file && (
               <div className="mb-6 p-4 bg-purple-950/20 border border-purple-800/50 rounded-xl">
                 <div className="flex items-center gap-3">
                   <Database className="w-5 h-5 text-purple-400 flex-shrink-0" />
@@ -350,8 +363,8 @@ export default function Home() {
               </div>
             )}
 
-            {/* Help Link - Only show when no saved connections and no file uploaded */}
-            {!hasConnections && !savedConnections && (
+            {/* Help Link - Only show when no saved connections and no file uploaded and not loading */}
+            {!hasConnections && !savedConnections && !loadingSaved && (
               <div className="mb-4">
                 <Link
                   href="/how-to-download"
@@ -365,7 +378,7 @@ export default function Home() {
             )}
 
             {/* File Upload Zone - Only show if no saved connections or if user wants to upload new file */}
-            {(!isSignedIn || !savedConnections || savedConnections.length === 0 || file) && (
+            {(!isSignedIn || (!loadingSaved && (!savedConnections || savedConnections.length === 0 || file))) && (
               <div className="mb-6">
                 <label className="flex items-center gap-2 text-slate-300 mb-3 text-lg font-medium">
                   <Upload className="w-5 h-5 text-purple-400" />
