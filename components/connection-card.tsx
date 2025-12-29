@@ -1,6 +1,7 @@
 import { Linkedin, Calendar } from "lucide-react"
 import type { MatchedConnection } from "@/lib/match-connections"
 import { trackLinkedInClick, trackButtonClick } from "@/lib/analytics"
+import { formatConnectionDate } from "@/lib/date-utils"
 
 interface ConnectionCardProps {
   connection: MatchedConnection
@@ -13,28 +14,7 @@ export function ConnectionCard({ connection, onConnect }: ConnectionCardProps) {
   const company = connection.Company || "No company listed"
   const connectedOn = connection["Connected On"] || ""
 
-  // Format the date nicely
-  const formatDate = (dateString: string): string => {
-    if (!dateString) return ""
-    try {
-      // LinkedIn dates are typically in format "DD Mon YYYY" or similar
-      // Try to parse and format it nicely
-      const date = new Date(dateString)
-      if (!isNaN(date.getTime())) {
-        return date.toLocaleDateString("en-US", { 
-          year: "numeric", 
-          month: "short", 
-          day: "numeric" 
-        })
-      }
-      // If parsing fails, return the original string
-      return dateString
-    } catch {
-      return dateString
-    }
-  }
-
-  const formattedDate = formatDate(connectedOn)
+  const formattedDate = formatConnectionDate(connectedOn)
 
   return (
     <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-6 hover:border-purple-500/50 transition-all hover:shadow-lg hover:shadow-purple-500/10">

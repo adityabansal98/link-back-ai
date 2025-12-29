@@ -11,6 +11,7 @@ import { ConnectionCard } from "@/components/connection-card"
 import { MessageModal } from "@/components/message-modal"
 import { trackFileUpload, trackButtonClick, trackSearch, trackPageView } from "@/lib/analytics"
 import { useTypingAnimation } from "@/hooks/useTypingAnimation"
+import { formatDate } from "@/lib/date-utils"
 
 export default function Home() {
   const { isSignedIn, user } = useUser()
@@ -221,23 +222,6 @@ export default function Home() {
 
   const showResults = matchedConnections.length > 0
   const hasConnections = connections !== null
-
-  // Format date for display
-  const formatDate = (dateString: string | null): string => {
-    if (!dateString) return "Never"
-    try {
-      const date = new Date(dateString)
-      return date.toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-      })
-    } catch {
-      return dateString
-    }
-  }
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-slate-950 via-purple-950 to-slate-950">

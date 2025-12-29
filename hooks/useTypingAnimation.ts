@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react"
-import { EXAMPLE_GOALS } from "@/lib/constants"
+import { EXAMPLE_GOALS, TYPING_SPEED } from "@/lib/constants"
 
 /**
  * Custom hook for typing animation effect on goal input
@@ -39,7 +39,7 @@ export function useTypingAnimation(resolution: string) {
             if (typingText.length > 0) {
                 timeout = setTimeout(() => {
                     setTypingText((prev) => prev.slice(0, -1))
-                }, 24)
+                }, TYPING_SPEED.DELETE)
             } else {
                 // Move to next goal
                 setIsDeleting(false)
@@ -50,12 +50,12 @@ export function useTypingAnimation(resolution: string) {
             if (typingText.length < currentGoal.length) {
                 timeout = setTimeout(() => {
                     setTypingText((prev) => currentGoal.slice(0, prev.length + 1))
-                }, 40)
+                }, TYPING_SPEED.TYPE)
             } else {
                 // Wait before deleting
                 timeout = setTimeout(() => {
                     setIsDeleting(true)
-                }, 800)
+                }, TYPING_SPEED.PAUSE)
             }
         }
 
