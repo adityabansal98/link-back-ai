@@ -1,13 +1,13 @@
 "use client"
 
 import { useState, useMemo, useEffect } from "react"
-import { Upload, Sparkles, Loader2, Users, RefreshCw, FileText } from "lucide-react"
-import { useDropzone } from "react-dropzone"
+import { Sparkles, Loader2, Users, RefreshCw, FileText } from "lucide-react"
 import { useUser } from "@clerk/nextjs"
 import Link from "next/link"
 import { Header } from "@/components/header"
 import { GoalInput } from "@/components/goal-input"
 import { SavedConnectionsBanner } from "@/components/saved-connections-banner"
+import { ConnectionsUpload } from "@/components/connections-upload"
 import { parseCSV, type LinkedInConnection } from "@/lib/csv-parser"
 import { matchConnections, type MatchedConnection } from "@/lib/match-connections"
 import { ConnectionCard } from "@/components/connection-card"
@@ -121,27 +121,15 @@ export default function Home() {
     }
   }
 
-  const onDrop = (acceptedFiles: File[]) => {
-    if (acceptedFiles.length > 0) {
-      const newFile = acceptedFiles[0]
-      // If a different file is uploaded, clear existing connections to force re-parsing
-      if (file && (file.name !== newFile.name || file.size !== newFile.size || file.lastModified !== newFile.lastModified)) {
-        setConnections(null)
-        setKeywords(null)
-      }
-      setFile(newFile)
-      setUsingSavedConnections(false) // Switch to new file mode
-      trackFileUpload(newFile.name)
+  const handleFileChange = (newFile: File) => {
+    // If a different file is uploaded, clear existing connections to force re-parsing
+    if (file && (file.name !== newFile.name || file.size !== newFile.size || file.lastModified !== newFile.lastModified)) {
+      setConnections(null)
+      setKeywords(null)
     }
+    setFile(newFile)
+    setUsingSavedConnections(false) // Switch to new file mode
   }
-
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    onDrop,
-    accept: {
-      "text/csv": [".csv"],
-    },
-    maxFiles: 1,
-  })
 
   const handleFindConnections = async () => {
     // Need resolution and either a file OR connections (from saved or uploaded)
@@ -298,55 +286,15 @@ export default function Home() {
             )}
 
             {/* File Upload Zone - Only show if no saved connections or if user wants to upload new file */}
-            {(!isSignedIn || (!loadingSaved && (!savedConnections || savedConnections.length === 0 || file))) && (
-              <div className="mb-6">
-                <label className="flex items-center gap-2 text-slate-300 mb-3 text-lg font-medium">
-                  <Upload className="w-5 h-5 text-purple-400" />
-                  LinkedIn Connections
-                  {hasConnections && (
-                    <span className="ml-2 text-xs text-green-400 font-normal">
-                      (Loaded: {connections?.length} connections
-                      {usingSavedConnections && " - from saved"}
-                      {!usingSavedConnections && file && " - from new upload"}
-                      )
-                    </span>
-                  )}
-                </label>
-                <div
-                  {...getRootProps()}
-                  className={`border-2 border-dashed rounded-xl p-12 text-center cursor-pointer transition-all ${isDragActive
-                    ? "border-purple-500 bg-purple-950/20"
-                    : "border-slate-700 hover:border-slate-600 bg-slate-900/30"
-                    }`}
-                >
-                  <input {...getInputProps()} />
-                  {file ? (
-                    <div className="space-y-2">
-                      <Upload className="w-12 h-12 mx-auto text-purple-400" />
-                      <p className="text-slate-200 font-medium">{file.name}</p>
-                      <p className="text-sm text-slate-400">Click or drag to replace</p>
-                    </div>
-                  ) : (
-                    <div className="space-y-4">
-                      <Upload className="w-12 h-12 mx-auto text-slate-500" />
-                      <div>
-                        <p className="text-slate-300 font-medium mb-1">
-                          {isDragActive
-                            ? "Drop your CSV file here"
-                            : "Drag & drop your Connections.csv file"}
-                        </p>
-                        <p className="text-sm text-slate-500">
-                          or click to browse
-                        </p>
-                      </div>
-                      <p className="text-xs text-slate-600 mt-4">
-                        Expected format: First Name, Last Name, Company, Position, Connected On
-                      </p>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
+            <ConnectionsUpload
+              file={file}
+              onFileChange={handleFileChange}
+              showFilePreview={true}
+              hasConnections={hasConnections}
+              connectionsCount={connections?.length}
+              usingSavedConnections={usingSavedConnections}
+              show={!isSignedIn || (!loadingSaved && (!savedConnections || savedConnections.length === 0 || !!file))}
+            />
 
             {/* Action Button */}
             <button

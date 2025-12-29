@@ -3,22 +3,21 @@
 import { useState, useEffect } from "react"
 import { useUser } from "@clerk/nextjs"
 import { useRouter } from "next/navigation"
-import { useDropzone } from "react-dropzone"
-import { 
-  Upload, 
-  User, 
-  Database, 
-  Loader2, 
-  ArrowLeft, 
-  Trash2, 
-  CheckCircle, 
+import {
+  User,
+  Database,
+  Loader2,
+  ArrowLeft,
+  Trash2,
+  CheckCircle,
   AlertCircle,
   Calendar,
   FileText
 } from "lucide-react"
 import Link from "next/link"
 import { parseCSV, type LinkedInConnection } from "@/lib/csv-parser"
-import { trackPageView, trackFileUpload, trackButtonClick } from "@/lib/analytics"
+import { trackPageView, trackButtonClick } from "@/lib/analytics"
+import { ConnectionsUpload } from "@/components/connections-upload"
 
 export default function ProfilePage() {
   const { isSignedIn, user } = useUser()
@@ -88,29 +87,24 @@ export default function ProfilePage() {
     }
   }
 
-  const onDrop = async (acceptedFiles: File[]) => {
-    if (acceptedFiles.length === 0) return
-
+  const handleFileChange = async (file: File) => {
     setUploading(true)
     setError(null)
     setSuccess(null)
 
     try {
-      const file = acceptedFiles[0]
-      trackFileUpload(file.name)
-
       // Parse CSV
       const parsedConnections = await parseCSV(file)
-      
+
       // Save to Supabase
       await saveConnections(parsedConnections)
-      
+
       // Update local state
       setConnections(parsedConnections)
       setUpdatedAt(new Date().toISOString())
       setSuccess(`Successfully updated ${parsedConnections.length} connections!`)
       trackButtonClick("update_connections", "profile_page")
-      
+
       // Clear success message after 5 seconds
       setTimeout(() => setSuccess(null), 5000)
     } catch (err) {
@@ -119,14 +113,6 @@ export default function ProfilePage() {
       setUploading(false)
     }
   }
-
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    onDrop,
-    accept: {
-      "text/csv": [".csv"],
-    },
-    maxFiles: 1,
-  })
 
   const handleDeleteConnections = async () => {
     if (!confirm("Are you sure you want to delete all saved connections? This cannot be undone.")) {
@@ -140,12 +126,12 @@ export default function ProfilePage() {
     try {
       // Save empty array to clear connections
       await saveConnections([])
-      
+
       setConnections(null)
       setUpdatedAt(null)
       setSuccess("All connections have been deleted.")
       trackButtonClick("delete_connections", "profile_page")
-      
+
       setTimeout(() => setSuccess(null), 5000)
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to delete connections")
@@ -286,44 +272,20 @@ export default function ProfilePage() {
           {/* Upload Section */}
           <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-6 mb-6">
             <div className="flex items-center gap-3 mb-4">
-              <Upload className="w-6 h-6 text-purple-400" />
+              <Database className="w-6 h-6 text-purple-400" />
               <h2 className="text-xl font-semibold text-slate-100">Update Connections</h2>
             </div>
             <p className="text-slate-400 text-sm mb-4">
               Upload a new CSV file to replace your saved connections. This will completely replace your existing data.
             </p>
 
-            <div
-              {...getRootProps()}
-              className={`border-2 border-dashed rounded-xl p-12 text-center cursor-pointer transition-all ${
-                isDragActive
-                  ? "border-purple-500 bg-purple-950/20"
-                  : "border-slate-700 hover:border-slate-600 bg-slate-900/30"
-              } ${uploading ? "opacity-50 cursor-not-allowed" : ""}`}
-            >
-              <input {...getInputProps()} disabled={uploading} />
-              {uploading ? (
-                <div className="space-y-2">
-                  <Loader2 className="w-12 h-12 mx-auto text-purple-400 animate-spin" />
-                  <p className="text-slate-300 font-medium">Uploading and processing...</p>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  <Upload className="w-12 h-12 mx-auto text-slate-500" />
-                  <div>
-                    <p className="text-slate-300 font-medium mb-1">
-                      {isDragActive
-                        ? "Drop your CSV file here"
-                        : "Drag & drop your Connections.csv file"}
-                    </p>
-                    <p className="text-sm text-slate-500">or click to browse</p>
-                  </div>
-                  <p className="text-xs text-slate-600 mt-4">
-                    Expected format: First Name, Last Name, Company, Position, Connected On
-                  </p>
-                </div>
-              )}
-            </div>
+            <ConnectionsUpload
+              file={null}
+              onFileChange={handleFileChange}
+              uploading={uploading}
+              showFilePreview={false}
+              show={true}
+            />
 
             <div className="mt-4">
               <Link
