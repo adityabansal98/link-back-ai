@@ -25,6 +25,18 @@ export default function Home() {
   const [savedConnectionsUpdatedAt, setSavedConnectionsUpdatedAt] = useState<string | null>(null)
   const [usingSavedConnections, setUsingSavedConnections] = useState(false)
   const [loadingSaved, setLoadingSaved] = useState(false)
+  
+  // Typing animation for example goals
+  const exampleGoals = [
+    "I want to pivot into Product Management in Climate Tech",
+    "I'm looking to connect with AI researchers and ML engineers",
+    "I need to find startup founders in the healthcare space",
+    "I want to network with VCs and investors in fintech",
+  ]
+  const [typingText, setTypingText] = useState("")
+  const [currentGoalIndex, setCurrentGoalIndex] = useState(0)
+  const [isTyping, setIsTyping] = useState(true)
+  const [isDeleting, setIsDeleting] = useState(false)
 
   // Clear all connection data when user signs out
   useEffect(() => {
@@ -60,6 +72,45 @@ export default function Home() {
   useEffect(() => {
     trackPageView("/")
   }, [])
+
+  // Typing animation effect
+  useEffect(() => {
+    if (!isTyping || resolution.trim().length > 0) {
+      return // Stop animation if user is typing
+    }
+
+    const currentGoal = exampleGoals[currentGoalIndex]
+    let timeout: NodeJS.Timeout
+
+    if (isDeleting) {
+      // Delete characters
+      if (typingText.length > 0) {
+        timeout = setTimeout(() => {
+          setTypingText((prev) => prev.slice(0, -1))
+        }, 24)
+      } else {
+        // Move to next goal
+        setIsDeleting(false)
+        setCurrentGoalIndex((prev) => (prev + 1) % exampleGoals.length)
+      }
+    } else {
+      // Type characters
+      if (typingText.length < currentGoal.length) {
+        timeout = setTimeout(() => {
+          setTypingText((prev) => currentGoal.slice(0, prev.length + 1))
+        }, 40)
+      } else {
+        // Wait before deleting
+        timeout = setTimeout(() => {
+          setIsDeleting(true)
+        }, 800)
+      }
+    }
+
+    return () => {
+      if (timeout) clearTimeout(timeout)
+    }
+  }, [typingText, isTyping, isDeleting, currentGoalIndex, resolution, exampleGoals])
 
   // Compute matched connections when we have both connections and keywords
   const matchedConnections = useMemo(() => {
@@ -312,13 +363,36 @@ export default function Home() {
                 <Target className="w-5 h-5 text-purple-400" />
                 Your Goal
               </label>
-              <textarea
-                id="resolution"
-                value={resolution}
-                onChange={(e) => setResolution(e.target.value)}
-                placeholder="e.g., I want to pivot into Product Management in Climate Tech"
-                className="w-full min-h-[120px] px-6 py-4 bg-slate-900/50 border border-slate-800 rounded-xl text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none text-lg"
-              />
+              <div className="relative">
+                <textarea
+                  id="resolution"
+                  value={resolution}
+                  onChange={(e) => {
+                    setResolution(e.target.value)
+                    setIsTyping(false) // Stop animation when user types
+                  }}
+                  onFocus={() => setIsTyping(false)} // Stop animation on focus
+                  onBlur={() => {
+                    // Resume animation if empty
+                    if (resolution.trim().length === 0) {
+                      setIsTyping(true)
+                      setIsDeleting(false)
+                      setTypingText("")
+                      setCurrentGoalIndex(0)
+                    }
+                  }}
+                  placeholder=""
+                  className="w-full min-h-[120px] px-6 py-4 bg-slate-900/50 border border-slate-800 rounded-xl text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none text-lg relative z-10"
+                />
+                {resolution.trim().length === 0 && typingText && (
+                  <div className="absolute inset-0 px-6 py-4 pointer-events-none z-0">
+                    <div className="text-slate-500 text-lg whitespace-pre-wrap">
+                      {typingText}
+                      <span className="animate-pulse">|</span>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Loading State - Show while fetching saved connections */}
