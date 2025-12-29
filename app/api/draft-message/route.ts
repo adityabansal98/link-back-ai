@@ -9,7 +9,7 @@ export async function POST(request: NextRequest) {
 
         if (!resolution || typeof resolution !== "string" || !resolution.trim()) {
             return NextResponse.json(
-                { error: "Resolution is required" },
+                { error: "Goal is required" },
                 { status: 400 }
             )
         }

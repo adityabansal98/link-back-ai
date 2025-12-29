@@ -6,8 +6,8 @@ import "./globals.css"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "Resolution Connector",
-  description: "Achieve your professional New Year's Resolutions by reconnecting with your network",
+  title: "Network Connector",
+  description: "Find the right people in your network to help you achieve your professional goals",
 }
 
 export default function RootLayout({

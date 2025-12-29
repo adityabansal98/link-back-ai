@@ -9,7 +9,7 @@ export async function POST(request: NextRequest) {
 
         if (!resolution || typeof resolution !== "string" || !resolution.trim()) {
             return NextResponse.json(
-                { error: "Resolution is required" },
+                { error: "Goal is required" },
                 { status: 400 }
             )
         }
@@ -71,7 +71,7 @@ export async function POST(request: NextRequest) {
     } catch (error) {
         console.error("Error analyzing resolution:", error)
         return NextResponse.json(
-            { error: error instanceof Error ? error.message : "Failed to analyze resolution" },
+            { error: error instanceof Error ? error.message : "Failed to analyze goal" },
             { status: 500 }
         )
     }

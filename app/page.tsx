@@ -109,7 +109,7 @@ export default function Home() {
     // Need resolution and either a file OR saved connections loaded
     if (!resolution.trim() || (!file && !connections)) {
       if (!resolution.trim()) {
-        setError("Please enter your resolution")
+        setError("Please enter your goal")
       } else if (!file && !connections) {
         setError("Please upload a CSV file or load your saved connections")
       }
@@ -147,7 +147,7 @@ export default function Home() {
 
       if (!response.ok) {
         const errorData = await response.json()
-        throw new Error(errorData.error || "Failed to analyze resolution")
+        throw new Error(errorData.error || "Failed to analyze goal")
       }
 
       const data = await response.json()
@@ -225,11 +225,11 @@ export default function Home() {
             <div className="flex items-center justify-center gap-2 mb-4">
               <Sparkles className="w-8 h-8 text-purple-400" />
               <h1 className="text-5xl font-bold bg-gradient-to-r from-purple-400 via-pink-400 to-purple-400 bg-clip-text text-transparent">
-                Resolution Connector
+                Network Connector
               </h1>
             </div>
             <p className="text-slate-400 text-lg mt-4">
-              Achieve your professional New Year&apos;s Resolutions by reconnecting with your network
+              Find the right people in your network to help you achieve your professional goals
             </p>
           </div>
 
@@ -238,18 +238,18 @@ export default function Home() {
             {showResults && (
               <div className="mb-4 pb-4 border-b border-slate-800">
                 <h2 className="text-lg font-semibold text-slate-200 mb-1">Adjust Your Search</h2>
-                <p className="text-sm text-slate-400">Modify your resolution to find different connections</p>
+                <p className="text-sm text-slate-400">Modify your goal to find different connections</p>
               </div>
             )}
 
-            {/* Resolution Input */}
+            {/* Goal Input */}
             <div className="mb-6">
               <label
                 htmlFor="resolution"
                 className="flex items-center gap-2 text-slate-300 mb-3 text-lg font-medium"
               >
                 <Target className="w-5 h-5 text-purple-400" />
-                Your Resolution
+                Your Goal
               </label>
               <textarea
                 id="resolution"
@@ -404,7 +404,7 @@ export default function Home() {
             <div className="mb-6 p-4 bg-yellow-950/50 border border-yellow-800 rounded-xl text-yellow-200">
               <p className="font-medium mb-2">Analysis Complete</p>
               <p className="text-sm text-yellow-300">
-                No matches found. Try adjusting your resolution or check if your connections have relevant positions/companies.
+                No matches found. Try adjusting your goal or check if your connections have relevant positions/companies.
               </p>
               <div className="mt-2 text-xs text-yellow-400">
                 Keywords searched: {keywords.join(", ")}

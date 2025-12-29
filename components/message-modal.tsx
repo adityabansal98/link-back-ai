@@ -17,7 +17,7 @@ export function MessageModal({ connection, resolution, isOpen, onClose }: Messag
 
   const generateMessage = async () => {
     if (!resolution.trim()) {
-      setError("Resolution is required to generate a message")
+      setError("Goal is required to generate a message")
       return
     }
 
