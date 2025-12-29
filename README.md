@@ -103,10 +103,18 @@ npm run dev
 │   └── page.tsx                    # Main landing page
 ├── components/
 │   ├── connection-card.tsx         # Individual connection display card
-│   └── message-modal.tsx           # Modal for viewing/generating messages
+│   ├── connections-upload.tsx      # Reusable CSV file upload component
+│   ├── goal-input.tsx              # Goal input with typing animation
+│   ├── header.tsx                  # App header with authentication UI
+│   ├── message-modal.tsx           # Modal for viewing/generating messages
+│   └── saved-connections-banner.tsx # Banner showing saved connections info
+├── hooks/
+│   └── useTypingAnimation.ts       # Custom hook for typing animation effect
 ├── lib/
 │   ├── analytics.ts                # Google Analytics event tracking
+│   ├── constants.ts                # Application-wide constants
 │   ├── csv-parser.ts               # LinkedIn CSV parsing utilities
+│   ├── date-utils.ts              # Date formatting utilities
 │   ├── match-connections.ts       # Connection filtering and ranking logic
 │   ├── supabase.ts                 # Supabase client initialization
 │   └── utils.ts                    # General utility functions
@@ -118,8 +126,11 @@ npm run dev
 ## How It Works
 
 1. **Sign In:** Authenticate with Google via Clerk
-2. **Upload Connections:** Upload your LinkedIn connections CSV file (or use previously saved connections)
+2. **Upload Connections:** Upload your LinkedIn connections CSV file
+   - If signed in, connections are automatically parsed and saved to your profile
+   - Previously saved connections are automatically loaded when you sign in
 3. **Enter Your Goal:** Describe what you want to achieve (e.g., "I want to connect with founders in the healthcare space")
+   - The input field includes a typing animation with example goals for inspiration
 4. **AI Analysis:** The app uses Google Gemini to extract relevant keywords, roles, industries, and exclusions from your goal
 5. **Smart Matching:** Connections are filtered and ranked based on:
    - Keyword matches in position, company, and other fields
@@ -127,7 +138,7 @@ npm run dev
    - Job level preferences (if specified)
 6. **Review Results:** Browse matched connections with relevance scores
 7. **Generate Messages:** Click on a connection to generate a personalized LinkedIn message
-8. **Connect:** Copy the message and open LinkedIn to send it
+8. **Connect:** Copy the message and open LinkedIn to send it (message is pre-filled in LinkedIn)
 
 ## Deployment
 
@@ -152,11 +163,13 @@ The app is configured for deployment on Vercel. See `VERCEL_DEPLOYMENT.md` for d
 ### Additional Features
 
 - User authentication and session management
-- Connection data persistence with Supabase
+- Connection data persistence with Supabase (auto-saved on upload)
 - Profile page for connection management
 - How-to-download guide for LinkedIn data
 - Google Analytics integration
 - Typing animation for goal suggestions
+- Modular component architecture for maintainability
+- Reusable components and custom hooks
 
 ## License
 
