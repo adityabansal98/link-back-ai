@@ -26,6 +26,19 @@ export default function Home() {
   const [usingSavedConnections, setUsingSavedConnections] = useState(false)
   const [loadingSaved, setLoadingSaved] = useState(false)
 
+  // Clear all connection data when user signs out
+  useEffect(() => {
+    if (!isSignedIn) {
+      setConnections(null)
+      setSavedConnections(null)
+      setSavedConnectionsUpdatedAt(null)
+      setFile(null)
+      setUsingSavedConnections(false)
+      setKeywords(null)
+      setError(null)
+    }
+  }, [isSignedIn])
+
   // Auto-load saved connections when user signs in
   useEffect(() => {
     if (isSignedIn && !savedConnections && !loadingSaved) {
