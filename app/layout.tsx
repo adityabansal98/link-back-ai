@@ -6,7 +6,7 @@ import "./globals.css"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "Network Connector",
+  title: "Link Back AI",
   description: "Find the right people in your network to help you achieve your professional goals",
 }
 

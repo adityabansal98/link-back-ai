@@ -226,7 +226,7 @@ export default function Home() {
             <div className="flex items-center justify-center gap-2 mb-4">
               <Sparkles className="w-8 h-8 text-purple-400" />
               <h1 className="text-5xl font-bold bg-gradient-to-r from-purple-400 via-pink-400 to-purple-400 bg-clip-text text-transparent">
-                Network Connector
+                Link Back AI
               </h1>
             </div>
             <p className="text-slate-400 text-lg mt-4">
